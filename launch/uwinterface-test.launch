@@ -1,0 +1,40 @@
+<launch>
+
+	<include file="$(find foxglove_bridge)/launch/foxglove_bridge.launch">
+		<param name="send_buffer_limit" value="100000000"/>
+	</include>
+
+	<include file="$(find video_stream_opencv)/launch/camera.launch">
+		<arg name="camera_name" value="cam"/>
+		<arg name="frame_id" value="cam"/>
+		
+		<arg name="fps" value="15"/>
+		<arg name="set_camera_fps" value="15"/>
+		<arg name="buffer_queue_size" value="10"/>
+		
+		<arg name="flip_horizontal" value="false"/>
+		<arg name="flip_vertical" value="false"/>
+		<arg name="visualize" value="false"/>
+		
+		<arg name="video_stream_provider" value="$(find uwinterface)/data/test.mp4"/>
+		<arg name="camera_info_url" value=""/>
+	</include>
+	
+	<node pkg="uwinterface" name="yolo_node" type="yolo.py" output="screen">
+		<remap from="image" to="/cam/image_raw/compressed"/>
+	
+		<param name="model" value="$(find uwinterface)/models/SNv21a.pt"/>
+		<param name="description" value="ScubaNetV2 - YOLOV8n"/>
+		
+		<param name="threshold" value="0.35"/>
+		<param name="iou" value="0.35"/>
+		<param name="half" value="false"/>
+	</node>
+
+	<node pkg="uwinterface" name="ux_node" type="ux.py" output="screen">
+		<remap from="image" to="/cam/image_raw/compressed"/>
+		<remap from="vision_info" to="/vision_info"/>
+		<remap from="object_detections" to="/object_detections"/>
+		<remap from="command" to="/command"/>
+	</node>
+</launch>
